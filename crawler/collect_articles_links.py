@@ -1,20 +1,39 @@
-import requests, re
+import requests
+import re
 from lxml import html
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def fetch_articles_links(issue_infos):
     article_links = []
-    for issue_info in issue_infos:
-        for issue in issue_info['number_and_link']:
-            article_link = fetch_articles_by(issue['link'])
-            article_links.append({
-                "year": issue_info['year'],
-                "volume": issue_info['volume'],
-                "number_and_link": {
-                    "number": issue['number'],
-                    "link": issue['link'],
-                    "articles": article_link
+    
+    # Cria um ThreadPoolExecutor para paralelizar as requisições
+    with ThreadPoolExecutor() as executor:
+        # Um dicionário para mapear os links de requisições com seus respectivos detalhes
+        future_to_issue = {}
+        
+        # Para cada issue_info, envia as requisições para os links de artigos
+        for issue_info in issue_infos:
+            for issue in issue_info['number_and_link']:
+                future = executor.submit(fetch_articles_by, issue['link'])
+                future_to_issue[future] = {
+                    "year": issue_info['year'],
+                    "volume": issue_info['volume'],
+                    "number_and_link": {
+                        "number": issue['number'],
+                        "link": issue['link']
+                    }
                 }
-            })
+
+        # Aguardar e processar os resultados das requisições
+        for future in as_completed(future_to_issue):
+            issue_data = future_to_issue[future]
+            try:
+                articles = future.result()  # Obtém o resultado da requisição
+                issue_data["number_and_link"]["articles"] = articles
+                article_links.append(issue_data)
+            except Exception as e:
+                print(f"Erro ao buscar artigos para o link {issue_data['number_and_link']['link']}: {e}")
+    
     return article_links
 
 def fetch_articles_by(link):
