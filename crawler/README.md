@@ -10,3 +10,10 @@ Para salvar o estado do env:
 
 Para desativar o env:
  - deactivate
+
+
+
+
+
+Instalação do teressact
+ - brew install tesseract
