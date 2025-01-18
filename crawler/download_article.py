@@ -1,8 +1,31 @@
 import requests
 import os
 from lxml import html
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 file_path = "articles/"
+
+def download(articles, max_workers=5):
+    tasks = []
+
+    # Cria um pool de threads
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        for article in articles:
+            for numberAndLink in article["number_and_link"]:
+                # Agenda as tarefas de download
+                year = article["year"]
+                number = numberAndLink["number"]
+                url = numberAndLink["link"]
+                tasks.append(executor.submit(download_by, year, number, url))
+
+        # Processa as tarefas à medida que são concluídas
+        for future in as_completed(tasks):
+            try:
+                result = future.result()
+                if result:
+                    print(result)
+            except Exception as e:
+                print(f"Erro em uma tarefa: {e}")
 
 def download_by(year, number, url):
     try:

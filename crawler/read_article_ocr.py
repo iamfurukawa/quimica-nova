@@ -2,12 +2,8 @@ from pathlib import Path
 from docling.backend.docling_parse_backend import DoclingParseDocumentBackend
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
-    EasyOcrOptions,
-    OcrMacOptions,
     PdfPipelineOptions,
-    RapidOcrOptions,
     TesseractCliOcrOptions,
-    TesseractOcrOptions,
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption
 
@@ -32,4 +28,10 @@ def ocr_read_by(file_path):
 
     doc = converter.convert(input_doc).document
     md = doc.export_to_markdown()
-    print(md)
+
+    # Define o caminho para salvar o arquivo .md
+    output_file = input_doc.with_suffix(".md")  # Altera a extensão para .md
+    with open(output_file, "w", encoding="utf-8") as file:
+        file.write(md)
+    
+    print(f"Arquivo Markdown salvo em: {output_file}")
