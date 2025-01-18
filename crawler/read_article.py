@@ -1,28 +1,42 @@
+from concurrent.futures import ThreadPoolExecutor
 from read_article_pdf import pdf_read_by
 from read_article_ocr import ocr_read_by
 
-def read_by(articles):
-    for article in articles:
-        for numberAndLink in article["number_and_link"]:
-            # Mais que 2000  
-            if int(article["year"]) > 2000:
-                print("PDF {}/{}".format(article["year"], numberAndLink["number"]))
-                pdf_read_by(numberAndLink["link"])
-                continue
-                
-            # Menos que 2000
-            if int(article["year"]) < 2000:
-                print("OCR {}/{}".format(article["year"], numberAndLink["number"]))
-                ocr_read_by(numberAndLink["link"])
-                continue
+def process_article(article):
+    tasks = []
+    for numberAndLink in article["number_and_link"]:
+        year = int(article["year"])
+        number = int(numberAndLink["number"])
+        link = numberAndLink["link"]
 
-            # Anos 2000, se o numero for maior que 4 usa PDF, caso contrário usa OCR
-            if int(numberAndLink["number"]) > 4:
-                print("PDF {}/{}".format(article["year"], numberAndLink["number"]))
-                pdf_read_by(numberAndLink["link"])
-                continue
+        if year > 2000:
+            print(f"PDF {year}/{number}")
+            tasks.append(("pdf", link))
+        elif year < 2000:
+            print(f"OCR {year}/{number}")
+            tasks.append(("ocr", link))
+        else:  # year == 2000
+            if number > 4:
+                print(f"PDF {year}/{number}")
+                tasks.append(("pdf", link))
             else:
-                print("OCR {}/{}".format(article["year"], numberAndLink["number"]))
-                ocr_read_by(numberAndLink["link"])
-                continue
-            
+                print(f"OCR {year}/{number}")
+                tasks.append(("ocr", link))
+    return tasks
+
+def handle_task(task):
+    task_type, link = task
+    if task_type == "pdf":
+        pdf_read_by(link)
+    elif task_type == "ocr":
+        ocr_read_by(link)
+
+def read_by(articles):
+    with ThreadPoolExecutor() as executor:
+        # Cria tarefas para processar cada artigo
+        all_tasks = []
+        for article in articles:
+            all_tasks.extend(process_article(article))
+
+        # Executa as tarefas de forma paralela
+        executor.map(handle_task, all_tasks)
