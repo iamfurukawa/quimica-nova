@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
-from read_article_pdf import pdf_read_by
-from read_article_ocr import ocr_read_by
+from convert_article_pdf import pdf_to_md_by
+from convert_article_ocr import ocr_to_md_by
 
 def process_article(article):
     tasks = []
@@ -27,11 +27,11 @@ def process_article(article):
 def handle_task(task):
     task_type, link = task
     if task_type == "pdf":
-        pdf_read_by(link)
+        pdf_to_md_by(link)
     elif task_type == "ocr":
-        ocr_read_by(link)
+        ocr_to_md_by(link)
 
-def read_by(articles):
+def convert_to_md(articles):
     with ThreadPoolExecutor() as executor:
         # Cria tarefas para processar cada artigo
         all_tasks = []

@@ -11,12 +11,8 @@ def download(articles, max_workers=5):
     # Cria um pool de threads
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         for article in articles:
-            for numberAndLink in article["number_and_link"]:
-                # Agenda as tarefas de download
-                year = article["year"]
-                number = numberAndLink["number"]
-                url = numberAndLink["link"]
-                tasks.append(executor.submit(download_by, year, number, url))
+            # Agenda as tarefas de download
+            tasks.append(executor.submit(download_by, article["year"], article["number"], article["link"], article["uuid"]))
 
         # Processa as tarefas à medida que são concluídas
         for future in as_completed(tasks):
@@ -27,7 +23,7 @@ def download(articles, max_workers=5):
             except Exception as e:
                 print(f"Erro em uma tarefa: {e}")
 
-def download_by(year, number, url):
+def download_by(year, number, url, uuid):
     try:
         # Cria o diretório necessário
         os.makedirs(os.path.dirname(f"articles/{year}/{number}/"), exist_ok=True)
@@ -49,8 +45,7 @@ def download_by(year, number, url):
             pdf_response.raise_for_status()
 
             # Nome do arquivo baseado na URL do PDF
-            file_name = pdf_url.split("/")[-1]
-            file_to_download = f"articles/{year}/{number}/{file_name}"
+            file_to_download = f"articles/{year}/{number}/{uuid}.pdf"
 
             # Salva o conteúdo do arquivo em partes
             with open(file_to_download, "wb") as file:

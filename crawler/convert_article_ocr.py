@@ -7,7 +7,7 @@ from docling.datamodel.pipeline_options import (
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption
 
-def ocr_read_by(file_path):
+def ocr_to_md_by(file_path):
     input_doc = Path(file_path)
 
     pipeline_options = PdfPipelineOptions()
@@ -30,7 +30,7 @@ def ocr_read_by(file_path):
     md = doc.export_to_markdown()
 
     # Define o caminho para salvar o arquivo .md
-    output_file = input_doc.with_suffix(".md")  # Altera a extensão para .md
+    output_file = input_doc.with_suffix("_original.md")  # Altera a extensão para .md
     with open(output_file, "w", encoding="utf-8") as file:
         file.write(md)
     
