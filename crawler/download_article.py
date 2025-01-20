@@ -7,12 +7,11 @@ file_path = "articles/"
 
 def download(articles, max_workers=5):
     tasks = []
-
+    
     # Cria um pool de threads
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         for article in articles:
-            # Agenda as tarefas de download
-            tasks.append(executor.submit(download_by, article["year"], article["number"], article["link"], article["uuid"]))
+            tasks.append(executor.submit(download_by, article["year"], article["number"], article["pdf_link"], article["uuid"]))
 
         # Processa as tarefas à medida que são concluídas
         for future in as_completed(tasks):
